@@ -1,0 +1,28 @@
+#!/bin/bash
+# Usage:
+# There are several ways to run this script:
+#  ./thiscript yourcommand args...
+#  yourcommand args... | ./thisscript
+#  ./thisscript
+# First one is preferred since it results in a meaningful filename
+# Second variant uses $(date +%s) as a filename
+# Last one shares your x primary selection, the first line of your primary
+# selection is going to be used as a filename
+
+PUBLIC_PATH="$HOME/Dropbox/Public"
+
+if [[ -t 0 ]]; then # no pipe # TODO rethink this condition
+    if (( $# > 0 )); then # command passed as arguments
+        filename="$*"
+        filename=${filename//\//?}
+        "$@" 2>&1 | tee "$PUBLIC_PATH/$filename"
+    else # primary selection
+        read -rn 20 filename <<< "$(xsel)"
+        filename=${filename//\//?}
+        xsel > "$PUBLIC_PATH/$filename"
+    fi
+else # read from pipe
+    filename=$(date +%s)
+    tee "$PUBLIC_PATH/$filename"
+fi
+dropbox puburl "$PUBLIC_PATH/$filename" | xsel -b

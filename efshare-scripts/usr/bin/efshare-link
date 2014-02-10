@@ -1,0 +1,13 @@
+#!/bin/bash
+PUBLIC_PATH=~/Dropbox/Public
+
+temp_folder=$(dirname "$0")/temp
+
+clipboard_text=$(xclip -o -selection primary) #Get selected text
+wget --content-disposition "$clipboard_text" -P "$temp_folder" #Download file
+downloaded_filename=$(basename "$temp_folder"/*) #Get the name of the downloaded file
+
+mv "$temp_folder/$downloaded_filename" "$PUBLIC_PATH/$downloaded_filename" #Move this file to dropbox public folder
+
+dropbox puburl "$PUBLIC_PATH/$downloaded_filename" | xclip -selection clipboard #Copy public url # TODO switch to xsel
+my_success

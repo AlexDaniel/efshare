@@ -1,0 +1,7 @@
+Package: efshare
+Architecture: all
+Maintainer: Aleks-Daniel Jakimenko
+Depends: imagemagick, scrot, xsel
+Priority: optional
+Version: 0.0.1
+Description: TODO

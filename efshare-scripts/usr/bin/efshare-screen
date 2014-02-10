@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PUBLIC_PATH="$HOME/Dropbox/Public"
+
+cd "$PUBLIC_PATH"
+declare -i delay=$1
+scrot -s -d "$delay" -e "mogrify -interlace PNG '\$f'; dropbox puburl '\$f'" | xsel -i -b
+
+my_success

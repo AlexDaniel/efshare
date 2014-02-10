@@ -1,0 +1,11 @@
+#!/bin/bash
+PUBLIC_PATH=~/Dropbox/Public/
+for curArg in "$@"
+do
+    cp -f "$curArg" "$PUBLIC_PATH"
+    destPath=$PUBLIC_PATH$(basename "$curArg")
+
+    links=$links$(dropbox puburl "$destPath")'\n'
+done
+
+echo -e -n "$links" | xclip -selection clipboard # TODO switch to xsel

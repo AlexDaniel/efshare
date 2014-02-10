@@ -1,0 +1,61 @@
+#!/bin/bash
+# by Sysaxed
+#export LC_NUMERIC="en_US.UTF-8"
+
+PATH_DATA='/tmp/my_scrif/'
+FILENAME_DATA='data'
+PATH_DESTINATION="$HOME/Dropbox/Public/"
+DELAY=0.25
+
+mkdir -p "$PATH_DATA"
+cd "$PATH_DATA"
+
+IFS=': ' read -r _ mouseX1 _ mouseY1 _ <<< "$(xdotool getmouselocation)"
+
+if [[ ! -f "$FILENAME_DATA" ]]; then # first click
+    echo "1 $mouseX1 $mouseY1" > "$FILENAME_DATA"
+    my_success
+    exit 0
+fi
+
+read -r stage mouseX2 mouseY2 < "$FILENAME_DATA"
+
+if [[ $stage == 2 ]]; then # last click, stop recording
+    rm "$FILENAME_DATA"
+    exit 0
+fi
+
+#start recording
+echo 2 > "$FILENAME_DATA"
+
+cropX=$(( $mouseX1 < $mouseX2 ? $mouseX1 : $mouseX2 ))
+cropY=$(( $mouseY1 < $mouseY2 ? $mouseY1 : $mouseY2 ))
+cropWidth=$(( $mouseX1 - $mouseX2 >= 0 ? $mouseX1 - $mouseX2 : $mouseX2 - $mouseX1 ))
+cropHeight=$(( $mouseY1 - $mouseY2 >= 0 ? $mouseY1 - $mouseY2 : $mouseY2 - $mouseY1 ))
+
+outputFilename="$(date +%Y-%M-%d-%H%M%S)_${cropWidth}x${cropHeight}_scrif.gif"
+
+curFilename=0
+while [[ -f "$FILENAME_DATA" ]]; do
+    (( $curFilename % 8 == 0 )) && my_success & # notify about gif recording
+    scrot "$(printf %04d $curFilename).png" &
+    ((curFilename++))
+    sleep "$DELAY"
+done
+
+notify-send 'Recording stopped'
+my_success
+
+mogrify -crop "${cropWidth}x${cropHeight}+$cropX+$cropY" +repage -depth 3 *.png
+convert -delay "$(printf '%.f' $(bc <<< 100*$DELAY))" -loop 0 -layers Optimize *.png anim.gif
+
+mv anim.gif "$PATH_DESTINATION/$outputFilename"
+rm -rf -- "$PATH_DATA"
+
+dropbox puburl "$PATH_DESTINATION/$outputFilename" | xclip -selection clipboard
+# or
+# imgur.py upload "$file" | grep -Po 'original:\s*\K.+' | xclip -selection clipboard
+
+my_success
+
+exit 0
