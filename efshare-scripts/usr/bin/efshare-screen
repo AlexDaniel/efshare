@@ -1,9 +1,16 @@
 #!/bin/bash
+SCREENSHOTS_BIN=~/screenshots
 
-PUBLIC_PATH="$HOME/Dropbox/Public"
+declare -A configVars
+while IFS='= ' read -r key value; do
+    configVars["$key"]=$value
+done < ~/.efshare
 
-cd "$PUBLIC_PATH"
-declare -i delay=$1
-scrot -s -d "$delay" -e "mogrify -interlace PNG '\$f'; dropbox puburl '\$f'" | xsel -i -b
+declare -i delay="$1"
+file=$(scrot -s -d "$delay" -e 'printf "%\s" $f')
+mogrify -interlace PNG -- "$file"
+curl -F "key=${configVars[key]}" -F "fileToUpload0=@$file" "${configVars[link]}" | xsel -i -b
+mkdir -p -- "$SCREENSHOTS_BIN"
+mv -- "$file" "$SCREENSHOTS_BIN"
 
 my_success
