@@ -1,0 +1,2 @@
+#!/bin/bash
+play -n synth tri G4 tri G5 delay .05 .1 remix - fade 0 2 2 norm -1
